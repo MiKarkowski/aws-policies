@@ -1,0 +1,85 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyAllExceptEC2DescribeAndS3ListInSpecificRegion",
+      "Effect": "Deny",
+      "NotAction": [
+        "ec2:Describe*",
+        "s3:ListBucket"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-west-2"
+        }
+      }
+    },
+    {
+      "Sid": "AllowS3ReadAccessWithConditions",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::example-bucket/*",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "public/*",
+            "shared/*"
+          ]
+        },
+        "IpAddress": {
+          "aws:SourceIp": [
+            "198.51.100.0/24",
+            "203.0.113.0/24"
+          ]
+        },
+        "DateGreaterThan": {
+          "aws:CurrentTime": "2024-06-01T00:00:00Z"
+        }
+      }
+    },
+    {
+      "Sid": "AllowRDSAccessButDenySpecificDBInstanceModification",
+      "Effect": "Allow",
+      "Action": [
+        "rds:Describe*",
+        "rds:ModifyDBInstance"
+      ],
+      "NotResource": "arn:aws:rds:us-west-2:123456789012:db:sensitive-db",
+      "Condition": {
+        "StringEqualsIfExists": {
+          "rds:DatabaseClass": "db.m5.large"
+        }
+      }
+    },
+    {
+      "Sid": "DenyS3DeleteUnlessMFA",
+      "Effect": "Deny",
+      "Action": "s3:DeleteObject",
+      "Resource": "arn:aws:s3:::example-bucket/*",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      }
+    },
+    {
+      "Sid": "AllowEC2StopInstancesDuringBusinessHours",
+      "Effect": "Allow",
+      "Action": "ec2:StopInstances",
+      "Resource": "arn:aws:ec2:us-west-2:123456789012:instance/*",
+      "Condition": {
+        "TimeOfDay": {
+          "aws:CurrentTime": [
+            "08:00:00Z",
+            "18:00:00Z"
+          ]
+        },
+        "StringEquals": {
+          "aws:RequestedRegion": "us-west-2"
+        }
+      }
+    }
+  ]
+}
+

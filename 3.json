@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyAllExceptSpecificS3Actions",
+      "Effect": "Deny",
+      "NotAction": [
+        "s3:ListBucket",
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::example-bucket/*",
+      "Condition": {
+        "IpAddress": {
+          "aws:SourceIp": "203.0.113.0/24"
+        }
+      }
+    },
+    {
+      "Sid": "AllowAllS3ActionsExceptDelete",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "NotResource": "arn:aws:s3:::example-bucket/private/*"
+    }
+  ]
+}
+

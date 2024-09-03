@@ -1,0 +1,88 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyAllExceptSpecificEC2ActionsInRegion",
+      "Effect": "Deny",
+      "NotAction": [
+        "ec2:DescribeInstances",
+        "ec2:StartInstances",
+        "ec2:StopInstances"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "AllowS3WriteAccessExceptCertainPrefix",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "NotResource": "arn:aws:s3:::example-bucket/archives/*",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": "uploads/*"
+        }
+      }
+    },
+    {
+      "Sid": "AllowRDSInstanceOperationsWithTags",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances",
+        "rds:ModifyDBInstance"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "rds:ResourceTag/Environment": "Development"
+        }
+      }
+    },
+    {
+      "Sid": "DenyEC2StopOutsideOfficeHours",
+      "Effect": "Deny",
+      "Action": "ec2:StopInstances",
+      "Resource": "arn:aws:ec2:us-west-1:123456789012:instance/*",
+      "Condition": {
+        "TimeOfDay": {
+          "aws:CurrentTime": [
+            "18:00:00Z",
+            "08:00:00Z"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "AllowLambdaInvokeByUserWithTag",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:us-west-2:123456789012:function:my-function",
+      "Condition": {
+        "StringEquals": {
+          "aws:userid": "AIDAEXAMPLEUSERID"
+        },
+        "StringEqualsIfExists": {
+          "lambda:SourceFunctionArn": "arn:aws:lambda:us-west-2:123456789012:function:trusted-function"
+        }
+      }
+    },
+    {
+      "Sid": "DenyAllUnlessMFAAuthenticated",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      }
+    }
+  ]
+}
+
